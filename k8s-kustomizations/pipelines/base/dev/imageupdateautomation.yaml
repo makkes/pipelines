@@ -1,0 +1,23 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImageUpdateAutomation
+metadata:
+  name: dev
+spec:
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        email: flux@e13.dev
+        name: flux
+  interval: 1m0s
+  sourceRef:
+    kind: GitRepository
+    name: test
+    namespace: flux-system
+  update:
+    path: ./pipelines/k8s-kustomizations/environments/dev
+    strategy: Setters
+
