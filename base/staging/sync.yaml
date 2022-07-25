@@ -8,7 +8,7 @@ metadata:
     pipelines.weave.works/stage: "1"
 spec:
   interval: 1m0s
-  path: ./k8s-kustomizations/pipelines/base/staging
+  path: ./base/staging
   prune: true
   force: true
   sourceRef:

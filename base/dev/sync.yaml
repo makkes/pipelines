@@ -2,13 +2,13 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
-  name: base-prod
+  name: base-dev
   labels:
     pipelines.weave.works/name: base
-    pipelines.weave.works/stage: "2"
+    pipelines.weave.works/stage: "0"
 spec:
   interval: 1m0s
-  path: ./k8s-kustomizations/pipelines/base/prod
+  path: ./base/dev
   prune: true
   force: true
   sourceRef:

@@ -18,6 +18,6 @@ spec:
     name: test
     namespace: flux-system
   update:
-    path: ./pipelines/k8s-kustomizations/environments/dev
+    path: ./base/dev
     strategy: Setters
 
