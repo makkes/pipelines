@@ -15,7 +15,7 @@ spec:
   interval: 1m0s
   sourceRef:
     kind: GitRepository
-    name: test
+    name: pipelines
     namespace: flux-system
   update:
     path: ./base/dev
