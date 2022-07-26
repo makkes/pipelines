@@ -37,9 +37,43 @@ base:
 		HelmRelease/prod/podinfo: 5.2.1
 ```
 
-## Generic DevX
+## Defining a new Pipeline
 
-### Promotion
+A pipeline is defined by applying the label `pipelines.weave.works/name` to one or more [Flux Kustomizations](https://fluxcd.io/docs/components/kustomize/kustomization/). Each Kustomization within the same pipeline (i.e. with the same name label) represents one stage of that pipeline. The order of stages is mandated by the label `pipelines.weave.works/stage` holding an integer value >= 0 where a lower value denotes an earlier stage. All applications deployed through one of these Kustomizations are considered part of the given pipeline.
+
+All pipeline Kustomizations can reside in a different Namespace as a pipeline is considered to span a whole cluster or even several clusters.
+
+### Example
+
+In this example we're going to create a pipeline called "podinfo" with the two stages "dev" and "prod". A single application "podinfo" is deployed as part of that pipeline, with version 6.1.6 going to the "dev" stage and 6.0.4 going to the "prod" stage:
+
+```sh
+# prepare the "dev" Namespace
+$ kubectl create ns podinfo-dev
+# create the "dev" source by specifying the 6.1.6 tag to be fetched
+$ flux create source git podinfo-dev --url=https://github.com/stefanprodan/podinfo/ --tag=6.1.6
+# create the "dev" stage Kustomization
+$ flux -n podinfo-dev create ks podinfo --target-namespace=podinfo-dev --source=GitRepository/podinfo-dev.flux-system --path="./kustomize" --prune=true --label=pipelines.weave.works/name=podinfo,pipelines.weave.works/stage=0
+# now prepare the "prod" Namespace
+$ kubectl create ns podinfo-prod
+# create the "prod" source by specifying the 6.0.4 tag this time
+$ flux create source git podinfo-prod --url=https://github.com/stefanprodan/podinfo/ --tag=6.0.4
+# create the "dev" stage Kustomization
+$ flux -n podinfo-prod create ks podinfo --target-namespace=podinfo-prod --source=GitRepository/podinfo-prod.flux-system --path="./kustomize" --prune=true --label=pipelines.weave.works/name=podinfo,pipelines.weave.works/stage=1
+```
+
+Now we can use the CLI provided in this repository to introspect the pipeline:
+
+```sh
+$ go run main.go
+podinfo:
+        podinfo-dev/podinfo
+                Deployment/podinfo-dev/podinfo: 6.1.6
+        podinfo-prod/podinfo
+                Deployment/podinfo-prod/podinfo: 6.0.4
+```
+
+## Promotion
 
 1. Build and push application image
 1. Check that Flux updates the application on dev and the app gets healthy
@@ -47,7 +81,3 @@ base:
 1. Check that Flux updates the application on staging and the app gets healthy
 1. Manually promote the application version from staging to prod by creating a commit changing the `kustomize` patch
 1. Check that Flux updates the application on staging and the app gets healthy
-
-### Pipeline Introspection
-
-Each pipeline stage is represented on the cluster by a `Kustomization`. The pipeline name is reflected by the `pipelines.weave.works/name` label on the Kustomization and the order of stages is represented by ascending values of the `pipelines.weave.works/stage` label.
